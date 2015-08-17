@@ -1,0 +1,69 @@
+# Maintainer: AdminEmpire <jl   adminempire   com>
+### I AM ONLY THE PACKAGER, NOT THE DEVELOPER
+### Please ask support questions about this software in one of:
+###   1) The AUR comments; OR
+###   2) Upstream forums/maillist etc; OR
+###   3) The ArchLinux forums
+### I do not always know enough about the software itself, or don't have the
+### time to promptly respond to direct emails.
+### If you have found a problem with the package/PKGBUILD (as opposed to
+### the software) then please do email me or post an AUR comment.
+
+pkgname=pacmanager
+pkgver=4.5.5.5
+pkgrel=1
+pkgdesc="Perl/GTK Gnome replacement for SecureCRT/Putty"
+arch=('armv6h' 'armv7h' 'i686' 'x86_64')
+url="http://sites.google.com/site/davidtv/"
+license=("GPL3")
+source=("https://sourceforge.net/projects/pacmanager/files/pac-4.0/pac-${pkgver}-all.tar.gz")
+depends=("perl-cairo-gobject"
+        "perl-gtk2-ex-simple-list"
+        "perl-expect"
+        "perl-io-stty"
+        "perl-yaml"
+        "glade-perl"
+        "gconf-perl"
+        "perl-crypt-cbc"
+        "perl-crypt-blowfish"
+        "perl-gtk2-gladexml-simple"
+        "perl-net-arp"
+        "perl-socket6"
+        "perl-net-proxy"
+        "uuid"
+        "perl-freezethaw"
+        "vte"
+        "perl-gnome2-vte"
+        "perl-gtk2-sourceview2"
+        "perl-crypt-rijndael"
+        "perl-xml-parser"
+	"perl-gtk2-unique")
+optdepends=('tightvnc' 'rdesktop' 'openssh' 'perl-gtk2-appindicator')
+sha512sums=('13a3061b6bab5ae09e90ee890f9bbf73308937685d2e26f42147bc95fe60ea3073f6c4b22824f82f237d7d39db80f145ce5697e81105c6717bcd143ef7f02f34')
+
+build() {
+  # some patching needed
+  cd "${srcdir}"/pac/lib
+  sed -i -e '/^require.*Vte.pm/s/.*/use Gnome2::Vte;/' -e '/Could not load Gnome2::Vte Perl/d' PACTerminal.pm
+  rm -r ex/vte32 ex/vte64 ex/vteARM
+  cd "${srcdir}"
+  find . -type f -exec sed -i 's%/bin/grep%/usr/bin/grep%g' '{}' \;
+}
+
+package() {
+  cd "${srcdir}"/pac
+  mkdir -p "${pkgdir}"/usr/{share/pacmanager/{lib,res,utils},bin}
+  cp -af lib "${pkgdir}"/usr/share/pacmanager/
+  install -Dm644 res/*png "${pkgdir}"/usr/share/pacmanager/res
+  install -Dm644 res/*jpg "${pkgdir}"/usr/share/pacmanager/res
+  install -Dm644 res/*glade "${pkgdir}"/usr/share/pacmanager/res
+  install -Dm755 utils/pac_from_mcm.pl "${pkgdir}"/usr/share/pacmanager/utils/pac_from_mcm.pl
+  install -Dm755 utils/pac_from_putty.pl "${pkgdir}"/usr/share/pacmanager/utils/pac_from_putty.pl
+  install -Dm755 pac "${pkgdir}"/usr/share/pacmanager/pac
+  install -Dm644 README "${pkgdir}"/usr/share/pacmanager/README
+  install -Dm644 res/pac.1 "${pkgdir}"/usr/share/man/man1/pac.1
+  install -Dm644 res/pac.yml "${pkgdir}"/usr/share/pacmanager/res/pac.yml
+  install -Dm644 res/pac64x64.png "${pkgdir}"/usr/share/pixmaps/pac.png && \
+  install -Dm644 res/pac.desktop "${pkgdir}"/usr/share/applications/pac.desktop
+  ln -s /usr/share/pacmanager/pac "${pkgdir}"/usr/bin/pac
+}
